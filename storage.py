@@ -1,4 +1,6 @@
 import sqlite3
+import random
+random.seed()
 
 def get_items():
     connection = sqlite3.connect("todo.db")
@@ -14,6 +16,8 @@ def get_item(id):
     cursor.execute("select * from todo where id=?",(id,))
     result = cursor.fetchall()
     cursor.close()
+    if len(result) == 0:
+        return None
     return result[0]
 
 def update_status(id, value):
@@ -46,6 +50,10 @@ def delete_item(id):
     connection.commit()
     cursor.close()
 
+def _random_text():
+    random_text = str(random.randint(10000,20000))
+    return random_text
+
 def test_get_items():
     print("testing get_items")
     results = get_items()
@@ -71,7 +79,51 @@ def test_get_item():
     assert task2 == task
     assert status2 == status
 
+def test_create_item():
+    print("testing create_item()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    returned_id, task, status = get_item(id)
+    assert returned_id == id
+    assert task == example_task
+    assert status == 0
+
+def test_update_status():
+    print("testing update_status()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    _, _, status = get_item(id)
+    assert status == 0
+    update_status(id, 1)
+    _, _, status = get_item(id)
+    assert status == 1
+    update_status(id, 0)
+    _, _, status = get_item(id)
+    assert status == 0
+
+def test_update_item():
+    print("testing update_item()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    updated_task = example_task + " updated..."
+    update_item(id, updated_task)
+    _, task, status = get_item(id)
+    assert task == updated_task
+
+def test_delete_item():
+    print("testing delete_item()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    returned_id, _, _ = get_item(id)
+    assert returned_id == id
+    delete_item(id)
+    assert get_item(id) == None
+
 if __name__ == "__main__":
-    # test_get_items()
+    test_get_items()
     test_get_item()
+    test_create_item()
+    test_update_status()
+    test_update_item()
+    test_delete_item()
     print("done.")
