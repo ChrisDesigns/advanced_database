@@ -1,6 +1,5 @@
 # A very simple Bottle Hello World app for you to get started with...
 import os
-import sqlite3
 from bottle import get, post, template, request, redirect
 
 # are we executing at PythonAnywhere?
@@ -15,7 +14,7 @@ else:
     # on the development environment, import the development server
     from bottle import run, debug
 
-from storage import get_items, get_item, update_status, create_item, update_item, delete_item
+from postgres_storage import get_items, get_item, update_status, create_item, update_item, delete_item
 
 
 @get('/')

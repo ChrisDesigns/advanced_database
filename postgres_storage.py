@@ -1,7 +1,9 @@
-import psycopg2
 import dataset
+import random
+random.seed()
 
 db = dataset.connect("postgresql://todouser1:todopassword1@drdelozier-1880.postgres.pythonanywhere-services.com:11880/tododb")
+# db = dataset.connect("sqlite:///:memory:")
 
 def get_items():
     items = list(db['todo'].all())
@@ -15,39 +17,22 @@ def get_item(id):
     results = [(item['id'],item['task'],item['status']) for item in items]
     return results[0]
 
-# def update_status(id, value):
-#     connection = sqlite3.connect("todo.db")
-#     cursor = connection.cursor()
-#     cursor.execute("update todo set status=? where id=?",(value, id))
-#     connection.commit()
-#     cursor.close()
+def create_item(task, status):
+    id = db['todo'].insert(dict(task=task, status=status))
+    return id
 
-# def create_item(task, status):
-#     connection = sqlite3.connect("todo.db")
-#     cursor = connection.cursor()
-#     cursor.execute("insert into todo (task, status) values (?,?)", (task, status))
-#     id = cursor.lastrowid
-#     connection.commit()
-#     cursor.close()
-#     return id
+def update_status(id, value):
+    db['todo'].update(dict(id=id, status=value), ['id'])
 
-# def update_item(id, updated_task):
-#     connection = sqlite3.connect("todo.db")
-#     cursor = connection.cursor()
-#     cursor.execute("update todo set task=? where id=?", (updated_task, id))
-#     connection.commit()
-#     cursor.close()
+def update_item(id, updated_task):
+    db['todo'].update(dict(id=id, task=updated_task), ['id'])
 
-# def delete_item(id):
-#     connection = sqlite3.connect("todo.db")
-#     cursor = connection.cursor()
-#     cursor.execute("delete from todo where id=?", (id,))
-#     connection.commit()
-#     cursor.close()
+def delete_item(id):
+    db['todo'].delete(id=id)
 
-# def _random_text():
-#     random_text = str(random.randint(10000,20000))
-#     return random_text
+def _random_text():
+    random_text = str(random.randint(10000,20000))
+    return random_text
 
 def test_get_items():
     print("testing get_items")
@@ -75,51 +60,51 @@ def test_get_item():
     assert task2 == task
     assert status2 == status
 
-# def test_create_item():
-#     print("testing create_item()")
-#     example_task = "This is an example item #" + _random_text()
-#     id = create_item(example_task, 0)
-#     returned_id, task, status = get_item(id)
-#     assert returned_id == id
-#     assert task == example_task
-#     assert status == 0
+def test_create_item():
+    print("testing create_item()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    returned_id, task, status = get_item(id)
+    assert returned_id == id
+    assert task == example_task
+    assert status == 0
 
-# def test_update_status():
-#     print("testing update_status()")
-#     example_task = "This is an example item #" + _random_text()
-#     id = create_item(example_task, 0)
-#     _, _, status = get_item(id)
-#     assert status == 0
-#     update_status(id, 1)
-#     _, _, status = get_item(id)
-#     assert status == 1
-#     update_status(id, 0)
-#     _, _, status = get_item(id)
-#     assert status == 0
+def test_update_status():
+    print("testing update_status()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    _, _, status = get_item(id)
+    assert status == 0
+    update_status(id, 1)
+    _, _, status = get_item(id)
+    assert status == 1
+    update_status(id, 0)
+    _, _, status = get_item(id)
+    assert status == 0
 
-# def test_update_item():
-#     print("testing update_item()")
-#     example_task = "This is an example item #" + _random_text()
-#     id = create_item(example_task, 0)
-#     updated_task = example_task + " updated..."
-#     update_item(id, updated_task)
-#     _, task, status = get_item(id)
-#     assert task == updated_task
+def test_update_item():
+    print("testing update_item()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    updated_task = example_task + " updated..."
+    update_item(id, updated_task)
+    _, task, status = get_item(id)
+    assert task == updated_task
 
-# def test_delete_item():
-#     print("testing delete_item()")
-#     example_task = "This is an example item #" + _random_text()
-#     id = create_item(example_task, 0)
-#     returned_id, _, _ = get_item(id)
-#     assert returned_id == id
-#     delete_item(id)
-#     assert get_item(id) == None
+def test_delete_item():
+    print("testing delete_item()")
+    example_task = "This is an example item #" + _random_text()
+    id = create_item(example_task, 0)
+    returned_id, _, _ = get_item(id)
+    assert returned_id == id
+    delete_item(id)
+    assert get_item(id) == None
 
 if __name__ == "__main__":
     test_get_items()
     test_get_item()
-    # test_create_item()
-    # test_update_status()
-    # test_update_item()
-    # test_delete_item()
+    test_create_item()
+    test_update_status()
+    test_update_item()
+    test_delete_item()
     print("done.")
